@@ -86,4 +86,26 @@ jQuery(document).ready(function ($) {
   //       },
   //     });
   //   });
+
+  $(document).on("click", "a[data-id]", function () {
+    var id = this.dataset.id;
+    const res = window.confirm("¿Está seguro que desea habilitar/deshabilitar ésta encuesta?");
+
+    if (res) {
+      var url = SolicitudesAjax.url;
+      $.ajax({
+        type: "POST",
+        url: url,
+        data: {
+          action: "deleteSurvey",
+          nonce: SolicitudesAjax.seguridad,
+          id: id,
+        },
+        success: function (res) {
+          alert("Acción Realizada.");
+          location.reload();
+        },
+      });
+    }
+  });
 });

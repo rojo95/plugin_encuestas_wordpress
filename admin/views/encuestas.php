@@ -45,36 +45,32 @@ if (isset($_POST["sewp_save_new"])) {
         );
         $last_id = $wpdb->get_var("SELECT LAST_INSERT_ID() FROM {$table};");
         echo "<br/>";
-        echo "incersion 1: " . $last_id;
-        if (!$last_id) {
+        if (!$insert_survey) {
             $wpdb->query("ROLLBACK");
             echo "<script>alert('Error al realizar la transacción, no se han podido ingresar los datos.')</script>";
-            return;
-        }
-
-        foreach ($asks_array as $values) {
-            $data = [
-                'survey_id' => $last_id,
-                'ask' => $values[0],
-                'type_ask' => $values[1],
-            ];
-            $wpdb->insert(
-                $join_table,
-                $data,
-            );
-        }
-
-        $last_id2 = $wpdb->get_var("SELECT LAST_INSERT_ID() FROM {$join_table};");
-        echo '<br />';
-        echo "incersion 2: " . $last_id2;
-        if ($last_id2) {
-            echo "<script>alert('Logrado.')</script>";
-            $wpdb->query("COMMIT;");
         } else {
-            $wpdb->query("ROLLBACK");
-            echo "<script>alert('Error al realizar la transacción, no se han podido ingresar los datos.')</script>";
-            return;
+            foreach ($asks_array as $values) {
+                $data = [
+                    'survey_id' => $last_id,
+                    'ask' => $values[0],
+                    'type_ask' => $values[1],
+                ];
+                $respuesta = $wpdb->insert(
+                    $join_table,
+                    $data,
+                );
+            }
+    
+            $last_id2 = $wpdb->get_var("SELECT LAST_INSERT_ID() FROM {$join_table};");
+            if ($last_id2) {
+                echo "<script>alert('Datos registrados de manera exitosa.')</script>";
+                $wpdb->query("COMMIT;");
+            } else {
+                $wpdb->query("ROLLBACK");
+                echo "<script>alert('Error al realizar la transacción, no se han podido ingresar los datos.')</script>";
+            }
         }
+
 
     }
 
@@ -112,8 +108,9 @@ $results = $wpdb->get_results($query, ARRAY_A);
                             <td>[scapi_shortcode=\"{$result['short_code']}\"]</td>
                             <td>
                                 <a href=\"#\" class=\"page-title-action\">Ver</a>
-                                <a href=\"#\" class=\"page-title-action\">Desactivar</a>
-                                <a href=\"#\" class=\"page-title-action\">Borrar</a>
+                                <a href=\"#\" class=\"page-title-action\" data-id=\"{$result['survey_id']}\">";
+                                if($result['status']){echo "Deshabilitar"; }else {echo "Habilitar";}
+                                echo "</a>
                             </td>
                         </tr>
                         ";

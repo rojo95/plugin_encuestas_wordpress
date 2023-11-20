@@ -20,6 +20,7 @@ function SEWPActivar()
         survey_id INT NOT NULL AUTO_INCREMENT,
         name VARCHAR(45) NOT NULL UNIQUE,
         short_code VARCHAR(45) NOT NULL UNIQUE,
+        status BOOLEAN DEFAULT TRUE,
         PRIMARY KEY (survey_id)
     );";
     $wpdb->query($sql);
@@ -85,7 +86,7 @@ add_action('admin_enqueue_scripts', 'SEWPEncolarBootstrapJs');
 
 function SEWPEncolarBootstrapCss($hook)
 {
-    if($hook != "super_encuestas_wp/admin/views/encuestas.php") {
+    if ($hook != "super_encuestas_wp/admin/views/encuestas.php") {
         return;
     }
     wp_enqueue_style('SEWPBootstrapCss', plugins_url('admin/bootstrap/css/bootstrap.min.css', __FILE__));
@@ -99,5 +100,27 @@ function SEWPEncolarJs($hook)
         return;
     }
     wp_enqueue_script('SEWPJs', plugins_url('admin/js/super_encuestas_wp.js', __FILE__), array('jquery'));
+    wp_localize_script('SEWPJs', 'SolicitudesAjax', [
+        'url' => admin_url('admin-ajax.php'),
+        'seguridad' => wp_create_nonce('seg')
+    ]);
 }
 add_action('admin_enqueue_scripts', 'SEWPEncolarJs');
+
+function EliminarEncuesta()
+{
+    $nonce = $_POST['nonce'];
+    if (!wp_verify_nonce($nonce, 'seg')) {
+        die('no tiene permisos para ejecutar ese ajax');
+    }
+
+    $id = $_POST['id'];
+    global $wpdb;
+    $tabla = $wpdb->prefix . 'sewp_survey';
+    $query = "SELECT status FROM {$tabla} WHERE survey_id=\"{$id}\";";
+    $results = $wpdb->get_results($query, ARRAY_A);
+    $wpdb->update($tabla, ['status' => !$results[0]['status']], array('survey_id' => $id));
+    return true;
+}
+
+add_action('wp_ajax_deleteSurvey', 'EliminarEncuesta');
