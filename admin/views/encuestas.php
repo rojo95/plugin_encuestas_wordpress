@@ -92,7 +92,7 @@ $results = $wpdb->get_results($query, ARRAY_A);
                                         <select name="sewp_type[]" id="sewp_type" class="form-control">
                                             <option value="" selected disabled>Selecciona el Típo de Pregunta</option>
                                             <option value="1">Selección Simple</option>
-                                            <option value="2">Numérica</option>
+                                            <option value="2">Selección de Rango</option>
                                         </select>
                                     </div>
                                 </div>
