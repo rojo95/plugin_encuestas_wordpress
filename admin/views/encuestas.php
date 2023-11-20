@@ -1,5 +1,8 @@
 <?php
 global $wpdb;
+if (isset($_POST["sewp_save_new"])) {
+    print_r($_POST);
+}
 $table = $wpdb->prefix . 'sewp_survey';
 $join_table = $wpdb->prefix . 'sewp_questions';
 $query = "SELECT a.*, COUNT(b.question_id) as questions FROM {$table} AS a INNER JOIN {$join_table} AS b ON a.survey_id = b.survey_id GROUP BY a.survey_id;";
@@ -46,15 +49,15 @@ $results = $wpdb->get_results($query, ARRAY_A);
 
 <!-- modal -->
 
-<div class="modal modal-lg fade" id="sewpModalNewSurvey" tabindex="-1"
-    aria-labelledby="sewpModalNewSurveyLabel" aria-hidden="true">
+<div class="modal modal-lg fade" id="sewpModalNewSurvey" tabindex="-1" aria-labelledby="sewpModalNewSurveyLabel"
+    aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
                 <h1 class="modal-title fs-5" id="sewpModalNewSurveyLabel">Nueva Encuesta</h1>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form action="POST">
+            <form method="POST">
                 <div class="modal-body">
                     <div class="form-group d-flex">
                         <label for="name" class="col-sm-5 col-form-label">
@@ -67,19 +70,32 @@ $results = $wpdb->get_results($query, ARRAY_A);
                         </div>
                     </div>
                     <div>
-                        <br>
+                        <hr>
                         <div class="d-flex w-100 col-sm-12">
                             <div class="col-sm-8 col-md-9">
                                 <h5>Preguntas</h5>
                             </div>
                             <div>
-                                <button class="btn btn-primary btn-sm" type="button" name="sewp_add" id="sewp_add">Agregar Pregunta +</button>
+                                <button class="btn btn-primary btn-sm" type="button" name="sewp_add"
+                                    id="sewp_add">Agregar Pregunta +</button>
                             </div>
                         </div>
                         <br>
                         <div id="sewp_dinamic_fields">
-                            <div id="sewp_dinamic_field" class="input-group">
-                                <input type="text" name="sewp_pregunta[]" id="sewp_pregunta" class="form-control" placeholder="Ingrese pregunta 1">
+                            <div id="sewp_dinamic_field" class="container">
+                                <div class="row">
+                                    <div class="input-group col">
+                                        <input type="text" name="sewp_pregunta[]" id="sewp_pregunta"
+                                            class="form-control" placeholder="Ingrese pregunta 1">
+                                    </div>
+                                    <div class="input-group col">
+                                        <select name="sewp_type[]" id="sewp_type" class="form-control">
+                                            <option value="" selected disabled>Selecciona el Típo de Pregunta</option>
+                                            <option value="1">Selección Simple</option>
+                                            <option value="2">Numérica</option>
+                                        </select>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         <!-- <table id="sewp_dinamic_fields">
@@ -95,7 +111,7 @@ $results = $wpdb->get_results($query, ARRAY_A);
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                    <button type="button" class="btn btn-success">Guardar Encuesta</button>
+                    <button type="submit" class="btn btn-success" name="sewp_save_new">Guardar Encuesta</button>
                 </div>
             </form>
         </div>
