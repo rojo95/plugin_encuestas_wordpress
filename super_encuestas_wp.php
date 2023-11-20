@@ -18,8 +18,8 @@ function SEWPActivar()
     $table_survey = $wpdb->prefix . 'sewp_survey';
     $sql = "CREATE TABLE IF NOT EXISTS {$table_survey} (
         survey_id INT NOT NULL AUTO_INCREMENT,
-        name VARCHAR(45) NOT NULL,
-        short_code VARCHAR(45) NOT NULL,
+        name VARCHAR(45) NOT NULL UNIQUE,
+        short_code VARCHAR(45) NOT NULL UNIQUE,
         PRIMARY KEY (survey_id)
     );";
     $wpdb->query($sql);

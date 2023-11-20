@@ -1,11 +1,87 @@
 <?php
 global $wpdb;
-if (isset($_POST["sewp_save_new"])) {
-    print_r($_POST);
-}
+
 $table = $wpdb->prefix . 'sewp_survey';
 $join_table = $wpdb->prefix . 'sewp_questions';
-$query = "SELECT a.*, COUNT(b.question_id) as questions FROM {$table} AS a INNER JOIN {$join_table} AS b ON a.survey_id = b.survey_id GROUP BY a.survey_id;";
+
+function generar_valor_aleatorio($longitud)
+{
+    global $wpdb;
+    $table = $wpdb->prefix . 'sewp_survey';
+    $caracteres = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    $campos_generados_query = "SELECT * FROM {$table};";
+    $campos_generados = $wpdb->get_results($campos_generados_query, ARRAY_A);
+    do {
+        $valor_aleatorio = '';
+        for ($i = 0; $i < $longitud; $i++) {
+            $valor_aleatorio .= $caracteres[random_int(0, strlen($caracteres) - 1)];
+        }
+    } while (in_array($valor_aleatorio, $campos_generados));
+
+    $campos_generados[] = $valor_aleatorio;
+
+    return $valor_aleatorio;
+}
+
+if (isset($_POST["sewp_save_new"])) {
+    if (!isset($_POST['sewp_type']) || !isset($_POST['sewp_pregunta']) || !isset($_POST['sewp_pregunta'])) {
+        echo "<script>alert('Error al ingresar los datos, recuerde que todos los datos son obligatorios.')</script>";
+    } else {
+
+        $asks_array = [];
+        foreach ($_POST['sewp_pregunta'] as $key => $value) {
+            array_push($asks_array, [$value, $_POST['sewp_type'][$key]]);
+        }
+
+        $valor_aleatorio = generar_valor_aleatorio(10);
+
+        $wpdb->query("START TRANSACTION;");
+        $insert_survey = $wpdb->insert(
+            $table,
+            array(
+                'name' => $_POST["sewp_name"],
+                'short_code' => $valor_aleatorio,
+            ),
+        );
+        $last_id = $wpdb->get_var("SELECT LAST_INSERT_ID() FROM {$table};");
+        echo "<br/>";
+        echo "incersion 1: " . $last_id;
+        if (!$last_id) {
+            $wpdb->query("ROLLBACK");
+            echo "<script>alert('Error al realizar la transacción, no se han podido ingresar los datos.')</script>";
+            return;
+        }
+
+        foreach ($asks_array as $values) {
+            $data = [
+                'survey_id' => $last_id,
+                'ask' => $values[0],
+                'type_ask' => $values[1],
+            ];
+            $wpdb->insert(
+                $join_table,
+                $data,
+            );
+        }
+
+        $last_id2 = $wpdb->get_var("SELECT LAST_INSERT_ID() FROM {$join_table};");
+        echo '<br />';
+        echo "incersion 2: " . $last_id2;
+        if ($last_id2) {
+            echo "<script>alert('Logrado.')</script>";
+            $wpdb->query("COMMIT;");
+        } else {
+            $wpdb->query("ROLLBACK");
+            echo "<script>alert('Error al realizar la transacción, no se han podido ingresar los datos.')</script>";
+            return;
+        }
+
+    }
+
+}
+
+
+$query = "SELECT a.*, COUNT(b.question_id) as questions FROM {$table} AS a LEFT JOIN {$join_table} AS b ON a.survey_id = b.survey_id GROUP BY a.survey_id;";
 $results = $wpdb->get_results($query, ARRAY_A);
 ?>
 <div class="wrap">
@@ -30,6 +106,7 @@ $results = $wpdb->get_results($query, ARRAY_A);
             } else {
                 foreach ($results as $result) {
                     echo "
+                        <tr>
                             <td>{$result['name']}</td>
                             <td>{$result['questions']}</td>
                             <td>[scapi_shortcode=\"{$result['short_code']}\"]</td>
@@ -38,6 +115,7 @@ $results = $wpdb->get_results($query, ARRAY_A);
                                 <a href=\"#\" class=\"page-title-action\">Desactivar</a>
                                 <a href=\"#\" class=\"page-title-action\">Borrar</a>
                             </td>
+                        </tr>
                         ";
                 }
             }
@@ -57,16 +135,17 @@ $results = $wpdb->get_results($query, ARRAY_A);
                 <h1 class="modal-title fs-5" id="sewpModalNewSurveyLabel">Nueva Encuesta</h1>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form method="POST">
+            <form method="POST" id="sewp_form">
                 <div class="modal-body">
+                    <p class="error-msg text-danger">Debe completar todos los campos, todos son obligatorios</p>
                     <div class="form-group d-flex">
-                        <label for="name" class="col-sm-5 col-form-label">
+                        <label for="sewp_name" class="col-sm-5 col-form-label">
                             <h5>
                                 Nombre de la Nueva Encuesta
                             </h5>
                         </label>
                         <div class="col-sm-7">
-                            <input class="form-control" type="text" name="sewp_name" id="sewp_name">
+                            <input class="form-control" type="text" name="sewp_name" id="sewp_name" required>
                         </div>
                     </div>
                     <div>
@@ -86,10 +165,10 @@ $results = $wpdb->get_results($query, ARRAY_A);
                                 <div class="row">
                                     <div class="input-group col">
                                         <input type="text" name="sewp_pregunta[]" id="sewp_pregunta"
-                                            class="form-control" placeholder="Ingrese pregunta 1">
+                                            class="form-control" placeholder="Ingrese pregunta 1" required>
                                     </div>
                                     <div class="input-group col">
-                                        <select name="sewp_type[]" id="sewp_type" class="form-control">
+                                        <select name="sewp_type[]" id="sewp_type" class="form-control" required>
                                             <option value="" selected disabled>Selecciona el Típo de Pregunta</option>
                                             <option value="1">Selección Simple</option>
                                             <option value="2">Selección de Rango</option>
@@ -108,10 +187,12 @@ $results = $wpdb->get_results($query, ARRAY_A);
                             </tr>
                         </table> -->
                     </div>
+                    <p class="error-msg text-danger"></p>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                    <button type="submit" class="btn btn-success" name="sewp_save_new">Guardar Encuesta</button>
+                    <button type="submit" class="btn btn-success" name="sewp_save_new" id="sewp_save_new">Guardar
+                        Encuesta</button>
                 </div>
             </form>
         </div>
