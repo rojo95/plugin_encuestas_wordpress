@@ -54,7 +54,7 @@ $results = $wpdb->get_results($query, ARRAY_A);
                 <h1 class="modal-title fs-5" id="sewpModalNewSurveyLabel">Nueva Encuesta</h1>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form action="">
+            <form action="POST">
                 <div class="modal-body">
                     <div class="form-group d-flex">
                         <label for="name" class="col-sm-5 col-form-label">
@@ -78,8 +78,8 @@ $results = $wpdb->get_results($query, ARRAY_A);
                         </div>
                         <br>
                         <div id="sewp_dinamic_fields">
-                            <div id="sewp_dinamic_field">
-                                <input type="text" name="sewp_pregunta[]" id="sewp_pregunta" class="form-control">
+                            <div id="sewp_dinamic_field" class="input-group">
+                                <input type="text" name="sewp_pregunta[]" id="sewp_pregunta" class="form-control" placeholder="Ingrese pregunta 1">
                             </div>
                         </div>
                         <!-- <table id="sewp_dinamic_fields">
