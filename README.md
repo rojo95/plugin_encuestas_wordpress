@@ -1,0 +1,1 @@
+Plugin de Wordpress con el cual se pueden hacer encuestas de manera sencilla.
