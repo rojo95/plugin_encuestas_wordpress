@@ -9,6 +9,9 @@ License: GPLv2 or later
 Tags: encuestas,consultas,preguntas,respuestas
 */
 
+// requires
+require_once(dirname(__FILE__) . "/classes/shortcode.class.php");
+
 /**
  * activation function and actions
  */
@@ -107,6 +110,9 @@ function SEWPEncolarJs($hook)
 }
 add_action('admin_enqueue_scripts', 'SEWPEncolarJs');
 
+/**
+ * "Eliminar" encuestas con ajax
+ */
 function EliminarEncuesta()
 {
     $nonce = $_POST['nonce'];
@@ -124,3 +130,33 @@ function EliminarEncuesta()
 }
 
 add_action('wp_ajax_deleteSurvey', 'EliminarEncuesta');
+
+// shortcode
+function ImprimirShortcode($atts)
+{
+    $_short = new ShortcodeClass();
+    $id = $atts['id'];
+
+    if(isset($_POST['btnguardar'])){
+        $listadePreguntas = $_short->ObtenerEncuestaDetalle($id);
+        $codigo = uniqid();
+        foreach ($listadePreguntas as $key => $value) {
+           $idpregunta = $value['DetalleId'];
+           if(isset($_POST[$idpregunta])){
+               $valortxt = $_POST[$idpregunta];
+               $datos = [
+                   'DetalleId' => $idpregunta,
+                   'Codigo' => $codigo,
+                   'Respuesta' => $valortxt
+               ];
+               $_short->GuardarDetalle($datos);
+           }
+        }
+        return " Encuesta enviada exitosamente";
+    }
+    
+    //Imprimir el formulario
+    $html = $_short->FormCreator($id);
+    return $html;
+}
+add_shortcode('scapi_shortcode', 'ImprimirShortcode');

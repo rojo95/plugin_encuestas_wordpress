@@ -105,7 +105,7 @@ $results = $wpdb->get_results($query, ARRAY_A);
                         <tr>
                             <td>{$result['name']}</td>
                             <td>{$result['questions']}</td>
-                            <td>[scapi_shortcode=\"{$result['short_code']}\"]</td>
+                            <td>[scapi_shortcode id=\"{$result['short_code']}\"]</td>
                             <td>
                                 <a href=\"#\" class=\"page-title-action\">Ver</a>
                                 <a href=\"#\" class=\"page-title-action\" data-id=\"{$result['survey_id']}\">";
@@ -169,6 +169,7 @@ $results = $wpdb->get_results($query, ARRAY_A);
                                             <option value="" selected disabled>Selecciona el Típo de Pregunta</option>
                                             <option value="1">Selección Simple</option>
                                             <option value="2">Selección de Rango</option>
+                                            <option value="3">Respuesta Breve</option>
                                         </select>
                                     </div>
                                 </div>
