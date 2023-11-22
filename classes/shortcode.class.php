@@ -1,6 +1,5 @@
 <?php
 class ShortcodeClass
-    //extends WP_Widget 
 {
     function GetSurvey($id)
     {
@@ -32,7 +31,6 @@ class ShortcodeClass
         $html = "
             <div class='wrap'>
                 <h4> $titulo</h4>
-                <br>
                 <form method='POST'>
 
         ";
@@ -97,7 +95,6 @@ class ShortcodeClass
             if ($short_code == $id) {
                 $preguntas .= $this->FormInput($detalleid, $pregunta, $tipo);
             }
-            print_r($encid);
         }
 
         $html = $this->OpenForm($nombre);

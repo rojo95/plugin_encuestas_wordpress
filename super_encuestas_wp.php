@@ -11,6 +11,7 @@ Tags: encuestas,consultas,preguntas,respuestas
 
 // requires
 require_once(dirname(__FILE__) . "/classes/shortcode.class.php");
+require_once(dirname(__FILE__) . "/classes/survey.class.php");
 
 /**
  * activation function and actions
@@ -113,7 +114,7 @@ add_action('admin_enqueue_scripts', 'SEWPEncolarJs');
 /**
  * "Eliminar" encuestas con ajax
  */
-function EliminarEncuesta()
+function DeleteSurvey()
 {
     $nonce = $_POST['nonce'];
     if (!wp_verify_nonce($nonce, 'seg')) {
@@ -129,7 +130,23 @@ function EliminarEncuesta()
     return true;
 }
 
-add_action('wp_ajax_deleteSurvey', 'EliminarEncuesta');
+add_action('wp_ajax_deleteSurvey', 'DeleteSurvey');
+
+function SaveNewSurvey()
+{
+    $nonce = $_POST['nonce'];
+    if (!wp_verify_nonce($nonce, 'seg')) {
+        die('no tiene permisos para ejecutar ese ajax');
+    }
+    
+    $survey = new survey();
+    $name = $_POST['name'];
+    $asks = $_POST['asks_array'];
+    $survey->CreateNewSurvey($name, $asks);
+    return true;
+}
+
+add_action('wp_ajax_saveSurvey', 'SaveNewSurvey');
 
 // shortcode
 function ImprimirShortcode($atts)
@@ -138,7 +155,7 @@ function ImprimirShortcode($atts)
     $id = $atts['id'];
 
     if(isset($_POST['btnguardar'])){
-        $listadePreguntas = $_short->ObtenerEncuestaDetalle($id);
+        $listadePreguntas = $_short->GetSurvey($id);
         $codigo = uniqid();
         foreach ($listadePreguntas as $key => $value) {
            $idpregunta = $value['DetalleId'];
